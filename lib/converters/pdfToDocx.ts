@@ -104,6 +104,14 @@ function buildLine(items: PositionedItem[]): DocLine | null {
 // title-to-body transition, which is naturally much larger than normal line spacing.
 const PARAGRAPH_GAP_MULTIPLIER = 1.6;
 
+// A heading set closely above its following body text (tight leading, common in real
+// documents) can have a gap that's still under PARAGRAPH_GAP_MULTIPLIER's threshold even
+// though the font size changes — which would otherwise merge the heading into the body
+// paragraph and apply the heading style to both. A font-size change beyond this ratio
+// always starts a new paragraph regardless of the gap, since two adjacent lines of
+// meaningfully different size are never really the same paragraph.
+const FONT_SIZE_CHANGE_RATIO = 1.1;
+
 function groupParagraphs(lines: DocLine[]): DocLine[][] {
   if (lines.length === 0) return [];
 
@@ -115,7 +123,10 @@ function groupParagraphs(lines: DocLine[]): DocLine[][] {
     const line = lines[i];
     const gap = prev.y - line.y;
     const expectedLineGap = Math.max(prev.fontSize, line.fontSize) * PARAGRAPH_GAP_MULTIPLIER;
-    if (gap > expectedLineGap) {
+    const fontSizeChanged =
+      Math.max(prev.fontSize, line.fontSize) / Math.min(prev.fontSize, line.fontSize) >
+      FONT_SIZE_CHANGE_RATIO;
+    if (gap > expectedLineGap || fontSizeChanged) {
       paragraphs.push(current);
       current = [];
     }
@@ -208,6 +219,12 @@ function detectHeadingLevel(paragraphFontSize: number, medianFontSize: number): 
   if (ratio > 1.1) return HeadingLevel.HEADING_3;
   return undefined;
 }
+
+// Matches a leading bullet glyph (plus its following whitespace) on a line extracted
+// from the PDF, so it can be rendered as a real Word list item instead of carrying the
+// literal character through as plain text. Deliberately excludes plain "-"/"*" since
+// those are common inside ordinary prose (hyphenated words, emphasis) and would false-positive.
+const BULLET_PATTERN = /^[•◦‣▪●○]\s+/;
 
 function buildTable(rows: string[][]): Table {
   return new Table({
@@ -365,9 +382,21 @@ export async function pdfToDocx(file: File): Promise<Blob> {
         continue;
       }
       for (const lines of groupParagraphs(block.lines)) {
-        const heading = detectHeadingLevel(lines[0].fontSize, medianFontSize);
-        const text = lines.map((l) => l.text).join(" ");
-        nodes.push(new Paragraph({ heading, children: [new TextRun(text)] }));
+        const rawText = lines.map((l) => l.text).join(" ");
+        // A bullet glyph is a much more reliable "this is a list item" signal than the
+        // font-size heuristic — some documents give bullet lines a slightly larger font
+        // (e.g. a bold lead-in phrase), which would otherwise misfire as a heading and
+        // carry the bullet character through as literal heading text.
+        const bulletMatch = BULLET_PATTERN.exec(rawText);
+        const heading = bulletMatch ? undefined : detectHeadingLevel(lines[0].fontSize, medianFontSize);
+        const text = bulletMatch ? rawText.slice(bulletMatch[0].length) : rawText;
+        nodes.push(
+          new Paragraph({
+            heading,
+            bullet: bulletMatch ? { level: 0 } : undefined,
+            children: [new TextRun(text)],
+          })
+        );
       }
     }
     for (const image of pageImages[p]) {

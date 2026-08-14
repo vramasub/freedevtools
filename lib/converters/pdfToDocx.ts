@@ -1,5 +1,21 @@
-import { Document, HeadingLevel, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from "docx";
+import {
+  AlignmentType,
+  Document,
+  HeadingLevel,
+  ImageRun,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  TextRun,
+} from "docx";
 import type { PDFPageProxy } from "pdfjs-dist";
+
+interface FontStyle {
+  bold: boolean;
+  italic: boolean;
+}
 
 interface PositionedItem {
   str: string;
@@ -8,6 +24,8 @@ interface PositionedItem {
   width: number;
   fontSize: number;
   fontName: string;
+  bold: boolean;
+  italic: boolean;
 }
 
 interface LineSegment {
@@ -15,17 +33,55 @@ interface LineSegment {
   startX: number;
 }
 
+interface StyleRun {
+  text: string;
+  bold: boolean;
+  italic: boolean;
+}
+
 interface DocLine {
   text: string;
   fontSize: number;
   fontName: string;
   y: number;
+  minX: number;
+  maxX: number;
   segments: LineSegment[];
+  runs: StyleRun[];
 }
 
 const Y_TOLERANCE = 2;
 
-function extractPageItems(textContent: { items: unknown[] }): PositionedItem[] {
+// `getTextContent()` only exposes an internal font alias (e.g. "g_d0_f1"), never the
+// real PostScript font name — so substring-matching for "bold"/"italic" against it can
+// never work. The actual font descriptor (with genuine bold/italic flags) only becomes
+// available via `page.commonObjs.get()` once something has walked the page's operator
+// list — which image extraction already does. Resolved once per page and looked up by
+// alias per item; any font that fails to resolve in time falls back to non-bold/non-italic
+// rather than blocking text extraction.
+async function resolvePageFontStyles(
+  page: PDFPageProxy,
+  fontNames: Iterable<string>
+): Promise<Map<string, FontStyle>> {
+  const styles = new Map<string, FontStyle>();
+  for (const name of fontNames) {
+    try {
+      const fontObj = await new Promise<{ bold?: boolean; italic?: boolean }>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("font resolve timed out")), 3000);
+        page.commonObjs.get(name, (resolved: unknown) => {
+          clearTimeout(timer);
+          resolve(resolved as { bold?: boolean; italic?: boolean });
+        });
+      });
+      styles.set(name, { bold: !!fontObj.bold, italic: !!fontObj.italic });
+    } catch {
+      styles.set(name, { bold: false, italic: false });
+    }
+  }
+  return styles;
+}
+
+function extractPageItems(textContent: { items: unknown[] }, fontStyles: Map<string, FontStyle>): PositionedItem[] {
   const items: PositionedItem[] = [];
   for (const raw of textContent.items) {
     if (!raw || typeof raw !== "object" || !("str" in raw)) continue;
@@ -33,7 +89,17 @@ function extractPageItems(textContent: { items: unknown[] }): PositionedItem[] {
     if (!item.str.trim()) continue;
     const [a, b, , , e, f] = item.transform;
     const fontSize = Math.hypot(a, b) || 1;
-    items.push({ str: item.str, x: e, y: f, width: item.width, fontSize, fontName: item.fontName });
+    const style = fontStyles.get(item.fontName) ?? { bold: false, italic: false };
+    items.push({
+      str: item.str,
+      x: e,
+      y: f,
+      width: item.width,
+      fontSize,
+      fontName: item.fontName,
+      bold: style.bold,
+      italic: style.italic,
+    });
   }
   return items;
 }
@@ -58,6 +124,28 @@ function groupIntoLines(items: PositionedItem[]): PositionedItem[][] {
 const COLUMN_GAP_MULTIPLIER = 1.5;
 const WORD_SPACE_MULTIPLIER = 0.25;
 
+// Appends `str` to `runs`, merging into the last run when it shares the same bold/italic
+// state so a run of same-styled characters becomes one TextRun instead of one per glyph run.
+function appendRun(runs: StyleRun[], str: string, bold: boolean, italic: boolean): void {
+  const last = runs[runs.length - 1];
+  if (last && last.bold === bold && last.italic === italic) {
+    last.text += str;
+  } else {
+    runs.push({ text: str, bold, italic });
+  }
+}
+
+function trimRuns(runs: StyleRun[]): StyleRun[] {
+  const trimmed = runs.map((r) => ({ ...r }));
+  while (trimmed.length && !trimmed[0].text.trim()) trimmed.shift();
+  while (trimmed.length && !trimmed[trimmed.length - 1].text.trim()) trimmed.pop();
+  if (trimmed.length) {
+    trimmed[0].text = trimmed[0].text.replace(/^\s+/, "");
+    trimmed[trimmed.length - 1].text = trimmed[trimmed.length - 1].text.replace(/\s+$/, "");
+  }
+  return trimmed;
+}
+
 function buildLine(items: PositionedItem[]): DocLine | null {
   const fontSize = items[0].fontSize;
   const columnGapThreshold = fontSize * COLUMN_GAP_MULTIPLIER;
@@ -68,6 +156,7 @@ function buildLine(items: PositionedItem[]): DocLine | null {
   let currentSegmentStartX = items[0].x;
   let prevEndX: number | null = null;
   const segments: LineSegment[] = [];
+  const runs: StyleRun[] = [];
 
   for (const item of items) {
     if (prevEndX !== null) {
@@ -79,13 +168,16 @@ function buildLine(items: PositionedItem[]): DocLine | null {
         currentSegment = "";
         currentSegmentStartX = item.x;
         text += " ";
+        appendRun(runs, " ", item.bold, item.italic);
       } else if (gap > spaceThreshold) {
         text += " ";
         currentSegment += " ";
+        appendRun(runs, " ", item.bold, item.italic);
       }
     }
     text += item.str;
     currentSegment += item.str;
+    appendRun(runs, item.str, item.bold, item.italic);
     prevEndX = item.x + item.width;
   }
   if (currentSegment.trim()) {
@@ -94,7 +186,18 @@ function buildLine(items: PositionedItem[]): DocLine | null {
 
   const trimmed = text.trim();
   if (!trimmed) return null;
-  return { text: trimmed, fontSize, fontName: items[0].fontName, y: items[0].y, segments };
+  const first = items[0];
+  const last = items[items.length - 1];
+  return {
+    text: trimmed,
+    fontSize,
+    fontName: first.fontName,
+    y: first.y,
+    minX: first.x,
+    maxX: last.x + last.width,
+    segments,
+    runs: trimRuns(runs),
+  };
 }
 
 // A line starts a new paragraph when the vertical gap from the previous line exceeds
@@ -220,11 +323,60 @@ function detectHeadingLevel(paragraphFontSize: number, medianFontSize: number): 
   return undefined;
 }
 
+// A paragraph is treated as centered when every one of its lines is horizontally
+// centered on the page (within tolerance) — the common signature of a title-page
+// heading or byline. Ordinary left-aligned paragraphs have lines starting at the same
+// left margin with varying (non-centered) right edges, so this rarely false-positives.
+const CENTER_TOLERANCE_RATIO = 0.04;
+
+function isLineCentered(line: DocLine, pageWidth: number): boolean {
+  if (pageWidth <= 0) return false;
+  const lineMid = (line.minX + line.maxX) / 2;
+  const pageMid = pageWidth / 2;
+  return Math.abs(lineMid - pageMid) <= pageWidth * CENTER_TOLERANCE_RATIO;
+}
+
 // Matches a leading bullet glyph (plus its following whitespace) on a line extracted
 // from the PDF, so it can be rendered as a real Word list item instead of carrying the
 // literal character through as plain text. Deliberately excludes plain "-"/"*" since
 // those are common inside ordinary prose (hyphenated words, emphasis) and would false-positive.
 const BULLET_PATTERN = /^[•◦‣▪●○]\s+/;
+
+// Combines a paragraph's lines into one ordered run list, joining lines with a plain
+// space (styled to match the following line's first run) and merging adjacent runs that
+// share the same bold/italic state.
+function combineLineRuns(lines: DocLine[]): StyleRun[] {
+  const combined: StyleRun[] = [];
+  lines.forEach((line, i) => {
+    if (i > 0) {
+      const joiner = line.runs[0] ?? { bold: false, italic: false };
+      appendRun(combined, " ", joiner.bold, joiner.italic);
+    }
+    for (const run of line.runs) {
+      appendRun(combined, run.text, run.bold, run.italic);
+    }
+  });
+  return combined;
+}
+
+// Removes `count` leading characters from a run list (used to strip a bullet marker
+// after it's been matched against the paragraph's flattened text), dropping any run
+// that becomes empty.
+function stripLeadingChars(runs: StyleRun[], count: number): StyleRun[] {
+  let remaining = count;
+  const result: StyleRun[] = [];
+  for (const run of runs) {
+    if (remaining <= 0) {
+      result.push(run);
+    } else if (run.text.length <= remaining) {
+      remaining -= run.text.length;
+    } else {
+      result.push({ ...run, text: run.text.slice(remaining) });
+      remaining = 0;
+    }
+  }
+  return result;
+}
 
 function buildTable(rows: string[][]): Table {
   return new Table({
@@ -294,16 +446,20 @@ function resolvedImageToPngBytes(obj: ResolvedPdfImage): Uint8Array | null {
   return bytes;
 }
 
-// Extracts embedded images from a single page. Isolated and best-effort: any failure —
-// per-image or for the whole page — is swallowed so image extraction never blocks the
-// surrounding text/table content, which is the primary output of this tool.
-async function extractPageImages(page: PDFPageProxy, paintImageOp: number): Promise<ExtractedImage[]> {
+// Extracts embedded images from a single page's already-fetched operator list. Isolated
+// and best-effort: any failure — per-image or for the whole page — is swallowed so image
+// extraction never blocks the surrounding text/table content, which is the primary
+// output of this tool.
+async function extractPageImages(
+  page: PDFPageProxy,
+  opList: { fnArray: number[]; argsArray: unknown[][] },
+  paintImageOp: number
+): Promise<ExtractedImage[]> {
   const results: ExtractedImage[] = [];
   try {
-    const opList = await page.getOperatorList();
     for (let i = 0; i < opList.fnArray.length; i++) {
       if (opList.fnArray[i] !== paintImageOp) continue;
-      const name = opList.argsArray[i][0];
+      const name = opList.argsArray[i][0] as string;
       try {
         const obj = await new Promise<ResolvedPdfImage>((resolve, reject) => {
           const timer = setTimeout(() => reject(new Error("image resolve timed out")), 5000);
@@ -352,20 +508,32 @@ export async function pdfToDocx(file: File): Promise<Blob> {
 
   const pageLines: DocLine[][] = [];
   const pageImages: ExtractedImage[][] = [];
+  const pageWidths: number[] = [];
   let totalChars = 0;
 
   for (let i = 1; i <= pdfDoc.numPages; i++) {
     const page = await pdfDoc.getPage(i);
-    const textContent = await page.getTextContent();
-    const items = extractPageItems(textContent);
+    const opList = await page.getOperatorList();
+
+    const rawTextContent = await page.getTextContent();
+    const fontNames = new Set<string>();
+    for (const it of rawTextContent.items) {
+      if (it && typeof it === "object" && "fontName" in it) {
+        fontNames.add((it as { fontName: string }).fontName);
+      }
+    }
+    const fontStyles = await resolvePageFontStyles(page, fontNames);
+
+    const items = extractPageItems(rawTextContent, fontStyles);
     totalChars += items.reduce((sum, it) => sum + it.str.trim().length, 0);
 
     const lines = groupIntoLines(items)
       .map(buildLine)
       .filter((l): l is DocLine => l !== null);
     pageLines.push(lines);
+    pageWidths.push(page.view[2] - page.view[0]);
 
-    pageImages.push(await extractPageImages(page, pdfjs.OPS.paintImageXObject));
+    pageImages.push(await extractPageImages(page, opList, pdfjs.OPS.paintImageXObject));
   }
 
   if (totalChars < 5) {
@@ -389,12 +557,17 @@ export async function pdfToDocx(file: File): Promise<Blob> {
         // carry the bullet character through as literal heading text.
         const bulletMatch = BULLET_PATTERN.exec(rawText);
         const heading = bulletMatch ? undefined : detectHeadingLevel(lines[0].fontSize, medianFontSize);
-        const text = bulletMatch ? rawText.slice(bulletMatch[0].length) : rawText;
+        const centered = !bulletMatch && lines.every((l) => isLineCentered(l, pageWidths[p]));
+
+        let runs = combineLineRuns(lines);
+        if (bulletMatch) runs = stripLeadingChars(runs, bulletMatch[0].length);
+
         nodes.push(
           new Paragraph({
             heading,
             bullet: bulletMatch ? { level: 0 } : undefined,
-            children: [new TextRun(text)],
+            alignment: centered ? AlignmentType.CENTER : undefined,
+            children: runs.map((r) => new TextRun({ text: r.text, bold: r.bold, italics: r.italic })),
           })
         );
       }

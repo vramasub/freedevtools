@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import Sidebar from "@/components/layout/Sidebar";
+import { SidebarProvider } from "@/components/layout/SidebarContext";
 import { siteConfig } from "@/lib/site-config";
 
 const geistSans = Geist({
@@ -38,8 +40,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white font-sans text-slate-900">
-        <Header />
-        <main className="flex-1">{children}</main>
+        <SidebarProvider>
+          <Header />
+          <div className="flex flex-1">
+            <Sidebar />
+            <main className="min-w-0 flex-1">{children}</main>
+          </div>
+        </SidebarProvider>
         <Footer />
         {ADSENSE_CLIENT && (
           <Script

@@ -85,6 +85,23 @@ export default function Sidebar() {
           </div>
         );
       })}
+
+      <div className="mt-3 space-y-0.5 border-t border-slate-200 pt-3">
+        <Link
+          href="/contact"
+          onClick={() => setMobileOpen(false)}
+          className="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+        >
+          Contact
+        </Link>
+        <Link
+          href="/privacy-policy"
+          onClick={() => setMobileOpen(false)}
+          className="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+        >
+          Privacy Policy
+        </Link>
+      </div>
     </nav>
   );
 

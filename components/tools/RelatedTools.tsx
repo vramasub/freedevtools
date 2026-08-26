@@ -12,15 +12,19 @@ export default function RelatedTools({ slug }: { slug: string }) {
 
   return (
     <section aria-labelledby="related-heading" className="mt-12">
-      <h2 id="related-heading" className="text-xl font-semibold text-slate-900">
+      <h2
+        id="related-heading"
+        className="text-xl font-semibold text-[#14140F]"
+        style={{ fontFamily: "var(--font-space-grotesk)" }}
+      >
         Related tools
       </h2>
-      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2" style={{ fontFamily: "var(--font-ibm-plex-sans)" }}>
         {related.map((tool) => (
           <li key={tool.slug}>
             <Link
               href={`/tools/${tool.slug}`}
-              className={`flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors ${theme.hoverBorder} ${theme.hoverBg} ${theme.linkHover}`}
+              className={`flex items-center justify-between rounded-lg border border-[#14140F]/15 px-4 py-3 text-sm font-medium text-[#14140F]/80 transition-colors ${theme.hoverBorder} ${theme.hoverBg} ${theme.linkHover}`}
             >
               {tool.shortTitle}
               <ArrowRight size={16} />

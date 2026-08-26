@@ -9,37 +9,40 @@ export interface CategoryTheme {
   linkHover: string;
 }
 
+// A curated, harmonized 4-hue "instrument panel" palette — deliberately chosen instead
+// of the default Tailwind swatches (violet/rose/amber/emerald) previously used here.
+// Flat accents (no gradients) to match the site's new Swiss/minimal direction.
 export const categoryTheme: Record<ToolCategory, CategoryTheme> = {
   data: {
-    gradient: "bg-gradient-to-br from-violet-500 to-indigo-500",
-    chipBg: "bg-violet-50",
-    chipText: "text-violet-700",
-    hoverBorder: "hover:border-violet-300",
-    hoverBg: "hover:bg-violet-50/60",
-    linkHover: "hover:text-violet-700",
+    gradient: "bg-[#4438CA]",
+    chipBg: "bg-[#4438CA]/10",
+    chipText: "text-[#4438CA]",
+    hoverBorder: "hover:border-[#4438CA]/40",
+    hoverBg: "hover:bg-[#4438CA]/5",
+    linkHover: "hover:text-[#4438CA]",
   },
   image: {
-    gradient: "bg-gradient-to-br from-rose-500 to-pink-500",
-    chipBg: "bg-rose-50",
-    chipText: "text-rose-700",
-    hoverBorder: "hover:border-rose-300",
-    hoverBg: "hover:bg-rose-50/60",
-    linkHover: "hover:text-rose-700",
+    gradient: "bg-[#E1502E]",
+    chipBg: "bg-[#E1502E]/10",
+    chipText: "text-[#E1502E]",
+    hoverBorder: "hover:border-[#E1502E]/40",
+    hoverBg: "hover:bg-[#E1502E]/5",
+    linkHover: "hover:text-[#E1502E]",
   },
   pdf: {
-    gradient: "bg-gradient-to-br from-amber-500 to-orange-500",
-    chipBg: "bg-amber-50",
-    chipText: "text-amber-700",
-    hoverBorder: "hover:border-amber-300",
-    hoverBg: "hover:bg-amber-50/60",
-    linkHover: "hover:text-amber-700",
+    gradient: "bg-[#B5751A]",
+    chipBg: "bg-[#B5751A]/10",
+    chipText: "text-[#B5751A]",
+    hoverBorder: "hover:border-[#B5751A]/40",
+    hoverBg: "hover:bg-[#B5751A]/5",
+    linkHover: "hover:text-[#B5751A]",
   },
   utility: {
-    gradient: "bg-gradient-to-br from-emerald-500 to-teal-500",
-    chipBg: "bg-emerald-50",
-    chipText: "text-emerald-700",
-    hoverBorder: "hover:border-emerald-300",
-    hoverBg: "hover:bg-emerald-50/60",
-    linkHover: "hover:text-emerald-700",
+    gradient: "bg-[#0E7A5F]",
+    chipBg: "bg-[#0E7A5F]/10",
+    chipText: "text-[#0E7A5F]",
+    hoverBorder: "hover:border-[#0E7A5F]/40",
+    hoverBg: "hover:bg-[#0E7A5F]/5",
+    linkHover: "hover:text-[#0E7A5F]",
   },
 };

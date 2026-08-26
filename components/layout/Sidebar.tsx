@@ -37,7 +37,7 @@ export default function Sidebar() {
   };
 
   const nav = (
-    <nav className="space-y-1 p-3">
+    <nav className="space-y-1 p-3" style={{ fontFamily: "var(--font-ibm-plex-sans)" }}>
       {categories.map((category) => {
         const theme = categoryTheme[category];
         const isOpen = openCategories.has(category);
@@ -47,7 +47,7 @@ export default function Sidebar() {
               type="button"
               onClick={() => toggleCategory(category)}
               aria-expanded={isOpen}
-              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-2 text-left text-sm font-semibold text-slate-800 hover:bg-slate-100"
+              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-2 text-left text-sm font-semibold text-[#14140F] hover:bg-[#14140F]/5"
             >
               <span className="flex items-center gap-2">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${theme.gradient}`} />
@@ -55,7 +55,7 @@ export default function Sidebar() {
               </span>
               <ChevronDown
                 size={16}
-                className={`shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                className={`shrink-0 text-[#14140F]/40 transition-transform ${isOpen ? "rotate-180" : ""}`}
               />
             </button>
             {isOpen && (
@@ -71,7 +71,7 @@ export default function Sidebar() {
                         className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${
                           isActive
                             ? `${theme.chipBg} ${theme.chipText} font-medium`
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            : "text-[#14140F]/65 hover:bg-[#14140F]/5 hover:text-[#14140F]"
                         }`}
                       >
                         <Icon size={14} className="shrink-0" />
@@ -86,18 +86,18 @@ export default function Sidebar() {
         );
       })}
 
-      <div className="mt-3 space-y-0.5 border-t border-slate-200 pt-3">
+      <div className="mt-3 space-y-0.5 border-t border-[#14140F]/10 pt-3">
         <Link
           href="/contact"
           onClick={() => setMobileOpen(false)}
-          className="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          className="block rounded-md px-2 py-1.5 text-sm text-[#14140F]/65 hover:bg-[#14140F]/5 hover:text-[#14140F]"
         >
           Contact
         </Link>
         <Link
           href="/privacy-policy"
           onClick={() => setMobileOpen(false)}
-          className="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          className="block rounded-md px-2 py-1.5 text-sm text-[#14140F]/65 hover:bg-[#14140F]/5 hover:text-[#14140F]"
         >
           Privacy Policy
         </Link>
@@ -107,7 +107,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white lg:block">
+      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-[#14140F]/10 bg-white lg:block">
         {nav}
       </aside>
 
@@ -119,13 +119,18 @@ export default function Sidebar() {
             aria-hidden="true"
           />
           <aside className="absolute inset-y-0 left-0 w-72 overflow-y-auto bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-200 p-4">
-              <span className="text-sm font-semibold text-slate-900">All Tools</span>
+            <div className="flex items-center justify-between border-b border-[#14140F]/10 p-4">
+              <span
+                className="text-sm font-semibold text-[#14140F]"
+                style={{ fontFamily: "var(--font-space-grotesk)" }}
+              >
+                All Tools
+              </span>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close menu"
-                className="rounded-md p-1 text-slate-500 hover:bg-slate-100"
+                className="rounded-md p-1 text-[#14140F]/60 hover:bg-[#14140F]/5"
               >
                 <X size={20} />
               </button>

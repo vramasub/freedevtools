@@ -37,6 +37,9 @@ export default function Header() {
           <Link href="/tools" className="text-sm font-medium text-[#14140F]/70 hover:text-[#14140F]">
             All Tools
           </Link>
+          <Link href="/guides" className="text-sm font-medium text-[#14140F]/70 hover:text-[#14140F]">
+            Guides
+          </Link>
           <Link href="/about" className="text-sm font-medium text-[#14140F]/70 hover:text-[#14140F]">
             About
           </Link>

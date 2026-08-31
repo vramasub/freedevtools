@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
 import { categoryLabels, type ToolCategory, type ToolMeta } from "@/lib/tools-registry";
+import type { GuideMeta } from "@/lib/guides-registry";
 
 export function buildToolMetadata(tool: ToolMeta): Metadata {
   const url = `${siteConfig.url}/tools/${tool.slug}`;
@@ -85,6 +86,22 @@ export function buildBreadcrumbSchema(tool: ToolMeta) {
       name: item.name,
       item: item.url,
     })),
+  };
+}
+
+export function buildArticleSchema(guide: GuideMeta) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: guide.title,
+    description: guide.description,
+    url: `${siteConfig.url}/guides/${guide.slug}`,
+    datePublished: guide.publishedAt,
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
   };
 }
 

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
 import { tools } from "@/lib/tools-registry";
+import { guides } from "@/lib/guides-registry";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
@@ -8,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/`, changeFrequency: "weekly", priority: 1, lastModified },
     { url: `${siteConfig.url}/tools`, changeFrequency: "weekly", priority: 0.9, lastModified },
+    { url: `${siteConfig.url}/guides`, changeFrequency: "weekly", priority: 0.7, lastModified },
     { url: `${siteConfig.url}/about`, changeFrequency: "monthly", priority: 0.3, lastModified },
     { url: `${siteConfig.url}/contact`, changeFrequency: "monthly", priority: 0.3, lastModified },
     { url: `${siteConfig.url}/privacy-policy`, changeFrequency: "yearly", priority: 0.2, lastModified },
@@ -21,5 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified,
   }));
 
-  return [...staticPages, ...toolPages];
+  const guidePages: MetadataRoute.Sitemap = guides.map((guide) => ({
+    url: `${siteConfig.url}/guides/${guide.slug}`,
+    changeFrequency: "monthly",
+    priority: 0.6,
+    lastModified: new Date(guide.publishedAt),
+  }));
+
+  return [...staticPages, ...toolPages, ...guidePages];
 }

@@ -88,6 +88,13 @@ export default function Sidebar() {
 
       <div className="mt-3 space-y-0.5 border-t border-[#14140F]/10 pt-3">
         <Link
+          href="/guides"
+          onClick={() => setMobileOpen(false)}
+          className="block rounded-md px-2 py-1.5 text-sm text-[#14140F]/65 hover:bg-[#14140F]/5 hover:text-[#14140F]"
+        >
+          Guides
+        </Link>
+        <Link
           href="/contact"
           onClick={() => setMobileOpen(false)}
           className="block rounded-md px-2 py-1.5 text-sm text-[#14140F]/65 hover:bg-[#14140F]/5 hover:text-[#14140F]"

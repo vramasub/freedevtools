@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Copy, Download, RefreshCw } from "lucide-react";
 import { downloadText } from "@/lib/download";
 
@@ -12,9 +12,17 @@ function generate(count: number): string[] {
 
 export default function UuidGenerator() {
   const [count, setCount] = useState(5);
-  const [uuids, setUuids] = useState<string[]>(() => generate(5));
+  // Generated after mount, not in the initial state, so the random UUIDs aren't produced
+  // during render — doing so gives the server and client different values and breaks
+  // hydration. The server renders an empty list; the client fills it on mount.
+  const [uuids, setUuids] = useState<string[]>([]);
   const [copiedAll, setCopiedAll] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setUuids(generate(5)), 0);
+    return () => clearTimeout(t);
+  }, []);
 
   function handleGenerate() {
     setUuids(generate(count));

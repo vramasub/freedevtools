@@ -10,6 +10,13 @@ import {
   KeyRound,
   Regex,
   FileSearch,
+  Type,
+  CaseSensitive,
+  Pilcrow,
+  Lock,
+  Palette,
+  Clock,
+  Link2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,4 +32,11 @@ export const toolIcons: Record<string, LucideIcon> = {
   "key-round": KeyRound,
   regex: Regex,
   "file-search": FileSearch,
+  type: Type,
+  "case-sensitive": CaseSensitive,
+  pilcrow: Pilcrow,
+  lock: Lock,
+  palette: Palette,
+  clock: Clock,
+  link: Link2,
 };

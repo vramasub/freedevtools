@@ -48,6 +48,7 @@ export function buildPageMetadata(opts: {
 
 const categoryToApplicationCategory: Record<ToolCategory, string> = {
   data: "DeveloperApplication",
+  text: "UtilitiesApplication",
   utility: "DeveloperApplication",
   image: "UtilitiesApplication",
   pdf: "UtilitiesApplication",

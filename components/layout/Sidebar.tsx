@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, X } from "lucide-react";
-import { categoryLabels, getToolsByCategory, type ToolCategory } from "@/lib/tools-registry";
+import { categoryLabels, categoryOrder, getToolsByCategory, type ToolCategory } from "@/lib/tools-registry";
 import { categoryTheme } from "@/lib/theme";
 import { toolIcons } from "@/lib/tool-icons";
 import { useSidebar } from "./SidebarContext";
 
-const categories: ToolCategory[] = ["data", "image", "pdf", "utility"];
+const categories = categoryOrder;
 
 function activeCategoryFor(pathname: string): ToolCategory | null {
   if (!pathname.startsWith("/tools/")) return null;

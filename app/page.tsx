@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ShieldCheck, ArrowRight } from "lucide-react";
-import { categoryLabels, getToolsByCategory, type ToolCategory } from "@/lib/tools-registry";
+import { categoryLabels, categoryOrder, getToolsByCategory } from "@/lib/tools-registry";
 import { categoryTheme } from "@/lib/theme";
 import { toolIcons } from "@/lib/tool-icons";
 import { buildOrganizationSchema } from "@/lib/seo";
 import AdSlot from "@/components/layout/AdSlot";
 import HeroDemo from "@/components/home/HeroDemo";
 
-const categories: ToolCategory[] = ["data", "image", "pdf", "utility"];
+const categories = categoryOrder;
 
 export default function Home() {
   return (

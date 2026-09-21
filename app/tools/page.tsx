@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { categoryLabels, getToolsByCategory, type ToolCategory } from "@/lib/tools-registry";
+import { categoryLabels, categoryOrder, getToolsByCategory } from "@/lib/tools-registry";
 import { buildPageMetadata } from "@/lib/seo";
 import { categoryTheme } from "@/lib/theme";
 import { toolIcons } from "@/lib/tool-icons";
 
-const categories: ToolCategory[] = ["data", "image", "pdf", "utility"];
+const categories = categoryOrder;
 
 export const metadata: Metadata = buildPageMetadata({
   title: "All Tools",

@@ -1,4 +1,4 @@
-export type ToolCategory = "data" | "image" | "pdf" | "utility";
+export type ToolCategory = "data" | "text" | "image" | "pdf" | "utility";
 
 export interface ToolMeta {
   slug: string;
@@ -11,10 +11,15 @@ export interface ToolMeta {
 
 export const categoryLabels: Record<ToolCategory, string> = {
   data: "Data Tools",
+  text: "Text Tools",
   image: "Image Tools",
   pdf: "PDF Tools",
   utility: "Developer Utilities",
 };
+
+// Single source of truth for the order categories appear in the homepage, tools index,
+// sidebar, and footer — imported by all of them so a new category can't be missed in one.
+export const categoryOrder: ToolCategory[] = ["data", "text", "image", "pdf", "utility"];
 
 export const tools: ToolMeta[] = [
   {
@@ -241,6 +246,69 @@ export const tools: ToolMeta[] = [
       "Free online log analyzer — search log files or stack traces for keywords, entirely in your browser. No upload, no signup.",
     category: "utility",
     icon: "file-search",
+  },
+  {
+    slug: "word-counter",
+    title: "Word & Character Counter",
+    shortTitle: "Word Counter",
+    description:
+      "Free online word and character counter. Count words, characters, sentences, and paragraphs instantly as you type — no signup, runs in your browser.",
+    category: "text",
+    icon: "type",
+  },
+  {
+    slug: "case-converter",
+    title: "Case Converter",
+    shortTitle: "Case Converter",
+    description:
+      "Free online case converter. Convert text to UPPERCASE, lowercase, Title Case, camelCase, snake_case, and more — instantly in your browser.",
+    category: "text",
+    icon: "case-sensitive",
+  },
+  {
+    slug: "lorem-ipsum-generator",
+    title: "Lorem Ipsum Generator",
+    shortTitle: "Lorem Ipsum",
+    description:
+      "Free Lorem Ipsum generator. Create placeholder text by paragraphs, sentences, or words for mockups and designs — copy with one click.",
+    category: "text",
+    icon: "pilcrow",
+  },
+  {
+    slug: "password-generator",
+    title: "Password Generator",
+    shortTitle: "Password Generator",
+    description:
+      "Free secure password generator. Create strong random passwords with custom length and character sets — generated in your browser, never sent anywhere.",
+    category: "utility",
+    icon: "lock",
+  },
+  {
+    slug: "color-picker",
+    title: "Color Picker & HEX to RGB Converter",
+    shortTitle: "Color Picker",
+    description:
+      "Free color picker and HEX to RGB converter. Pick a color and get its HEX, RGB, and HSL values instantly — great for design and CSS.",
+    category: "utility",
+    icon: "palette",
+  },
+  {
+    slug: "unix-timestamp-converter",
+    title: "Unix Timestamp Converter",
+    shortTitle: "Unix Timestamp",
+    description:
+      "Free Unix timestamp converter. Convert epoch time to a human-readable date and back, in local time or UTC — instant, runs in your browser.",
+    category: "utility",
+    icon: "clock",
+  },
+  {
+    slug: "url-encoder-decoder",
+    title: "URL Encoder / Decoder",
+    shortTitle: "URL Encode/Decode",
+    description:
+      "Free online URL encoder and decoder. Percent-encode text for safe use in URLs, or decode an encoded URL back to plain text — entirely client-side.",
+    category: "utility",
+    icon: "link",
   },
 ];
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { categoryLabels, getToolsByCategory, type ToolCategory } from "@/lib/tools-registry";
+import { categoryLabels, categoryOrder, getToolsByCategory } from "@/lib/tools-registry";
 import { siteConfig } from "@/lib/site-config";
 import { categoryTheme } from "@/lib/theme";
 
-const categories: ToolCategory[] = ["data", "image", "pdf", "utility"];
+const categories = categoryOrder;
 
 export default function Footer() {
   return (

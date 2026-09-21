@@ -21,6 +21,14 @@ export const categoryTheme: Record<ToolCategory, CategoryTheme> = {
     hoverBg: "hover:bg-[#4438CA]/5",
     linkHover: "hover:text-[#4438CA]",
   },
+  text: {
+    gradient: "bg-[#BE185D]",
+    chipBg: "bg-[#BE185D]/10",
+    chipText: "text-[#BE185D]",
+    hoverBorder: "hover:border-[#BE185D]/40",
+    hoverBg: "hover:bg-[#BE185D]/5",
+    linkHover: "hover:text-[#BE185D]",
+  },
   image: {
     gradient: "bg-[#E1502E]",
     chipBg: "bg-[#E1502E]/10",

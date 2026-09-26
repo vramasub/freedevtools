@@ -63,6 +63,38 @@ export const guides: GuideMeta[] = [
     publishedAt: "2026-08-26",
     relatedTools: ["csv-to-json", "compress-png", "hash-generator"],
   },
+  {
+    slug: "what-is-a-jwt",
+    title: "What Is a JWT (JSON Web Token), Really?",
+    description:
+      "A JWT looks encrypted and isn't — it's a signed, readable claim anyone can decode. Here's what's actually inside one, and what the signature does and doesn't protect.",
+    publishedAt: "2026-09-26",
+    relatedTools: ["jwt-decoder"],
+  },
+  {
+    slug: "yaml-vs-json",
+    title: "YAML vs JSON: Which Should You Use?",
+    description:
+      "YAML and JSON encode the same data model but read completely differently. A practical guide to when YAML's readability is worth it, and when JSON's simplicity wins.",
+    publishedAt: "2026-09-26",
+    relatedTools: ["yaml-to-json", "json-to-yaml"],
+  },
+  {
+    slug: "what-is-unix-timestamp",
+    title: "What Is a Unix Timestamp (and Why Does It Start in 1970)?",
+    description:
+      "A Unix timestamp is just a count of seconds — no timezone, no calendar, no ambiguity. Here's why systems store time this way and how to read one.",
+    publishedAt: "2026-09-26",
+    relatedTools: ["unix-timestamp-converter"],
+  },
+  {
+    slug: "how-qr-codes-work",
+    title: "How Do QR Codes Actually Work?",
+    description:
+      "A QR code isn't a picture of your data — it's structured, error-corrected binary. Here's what's actually encoded in those black and white squares.",
+    publishedAt: "2026-09-26",
+    relatedTools: ["qr-code-generator"],
+  },
 ];
 
 export function getGuideBySlug(slug: string): GuideMeta | undefined {

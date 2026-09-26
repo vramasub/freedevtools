@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ShieldCheck, ArrowRight } from "lucide-react";
-import { categoryLabels, categoryOrder, getToolsByCategory } from "@/lib/tools-registry";
+import { categoryLabels, categoryOrder, getToolsByCategory, tools } from "@/lib/tools-registry";
 import { categoryTheme } from "@/lib/theme";
 import { toolIcons } from "@/lib/tool-icons";
 import { buildOrganizationSchema } from "@/lib/seo";
@@ -23,7 +23,7 @@ export default function Home() {
               className="text-xs uppercase tracking-[0.14em] text-[#14140F]/50"
               style={{ fontFamily: "var(--font-jetbrains-mono)" }}
             >
-              25 tools · runs entirely on this device
+              {tools.length} tools · runs entirely on this device
             </p>
             <h1
               className="mt-4 text-4xl font-semibold leading-[1.05] tracking-tight text-[#14140F] sm:text-6xl"

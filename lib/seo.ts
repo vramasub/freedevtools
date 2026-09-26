@@ -3,6 +3,12 @@ import { siteConfig } from "@/lib/site-config";
 import { categoryLabels, type ToolCategory, type ToolMeta } from "@/lib/tools-registry";
 import type { GuideMeta } from "@/lib/guides-registry";
 
+// A page that sets its own `openGraph` object (as every tool/guide/static page does, via
+// the builders below) doesn't inherit the root `app/opengraph-image.tsx` file-convention
+// image — Next only falls back to it for routes with no openGraph object of their own.
+// So every builder here has to reference it explicitly, or the page gets no share image.
+const defaultOgImages = [{ url: "/opengraph-image", width: 1200, height: 630 }];
+
 export function buildToolMetadata(tool: ToolMeta): Metadata {
   const url = `${siteConfig.url}/tools/${tool.slug}`;
   return {
@@ -16,11 +22,13 @@ export function buildToolMetadata(tool: ToolMeta): Metadata {
       url,
       siteName: siteConfig.name,
       type: "website",
+      images: defaultOgImages,
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: tool.title,
       description: tool.description,
+      images: defaultOgImages.map((image) => image.url),
     },
   };
 }
@@ -42,6 +50,13 @@ export function buildPageMetadata(opts: {
       url,
       siteName: siteConfig.name,
       type: "website",
+      images: defaultOgImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: opts.title,
+      description: opts.description,
+      images: defaultOgImages.map((image) => image.url),
     },
   };
 }

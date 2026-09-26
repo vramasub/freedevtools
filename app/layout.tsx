@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono, Space_Grotesk, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -8,19 +8,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
 import { siteConfig } from "@/lib/site-config";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Prototype typefaces for the new homepage hero direction — exposed as CSS variables
-// only, not applied as the site-wide default, so this stays scoped to the hero until
-// the direction is approved.
+// Site-wide type stack (also the Tailwind `font-sans`/`font-mono` defaults — see
+// globals.css `@theme inline`), replacing the create-next-app default Geist fonts.
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
@@ -56,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white font-sans text-slate-900">
         <SidebarProvider>

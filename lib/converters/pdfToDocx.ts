@@ -9,6 +9,7 @@ import {
   TableCell,
   TableRow,
   TextRun,
+  VerticalMergeType,
 } from "docx";
 import type { PDFPageProxy } from "pdfjs-dist";
 
@@ -102,6 +103,26 @@ function extractPageItems(textContent: { items: unknown[] }, fontStyles: Map<str
     });
   }
   return items;
+}
+
+// A raised ordinal suffix ("19th", "3rd") is typeset as its own text run, shifted upward
+// far enough that it lands outside Y_TOLERANCE of the baseline text around it — so it
+// gets grouped as its own stray one-"line" group instead of merging into the real line.
+// Worse, two suffixes from the same or nearby dates (e.g. "15th September ... 15th
+// December") often land at the same raised Y and merge into one orphan group like "th th".
+// Splicing these back into the correct position in the baseline text would need per-glyph
+// X-matching against possibly multiple insertion points; since the suffix is purely
+// cosmetic, dropping the orphan line is far simpler and turns a broken, fractured
+// paragraph into clean (if slightly less formal) text: "19 October" instead of "19th
+// October" with a stray "th" line above it.
+const ORPHAN_ORDINAL_SUFFIX = /^(?:st|nd|rd|th)+$/i;
+
+function isOrphanOrdinalSuffixLine(line: PositionedItem[]): boolean {
+  const joined = line
+    .map((item) => item.str)
+    .join("")
+    .replace(/\s+/g, "");
+  return ORPHAN_ORDINAL_SUFFIX.test(joined);
 }
 
 function groupIntoLines(items: PositionedItem[]): PositionedItem[][] {
@@ -249,9 +270,15 @@ const TABLE_X_TOLERANCE = 15;
 const MIN_TABLE_COLUMNS = 2;
 const MIN_TABLE_ROWS = 2;
 
-// Starting at `start`, greedily extends a run of lines that all share the same column
-// count and aligned column start positions. Returns null if fewer than MIN_TABLE_ROWS
-// lines match.
+// Starting at `start`, greedily extends a run of lines that all share aligned column
+// start positions. Returns null if fewer than MIN_TABLE_ROWS lines match.
+//
+// A row is allowed to have FEWER segments than the reference row, as long as every
+// segment it does have aligns to one of the reference columns — this is what makes a
+// real-world spanning cell work (e.g. a "Monday" label in column 1 that only appears once,
+// with every subsequent activity row in that day having text in column 2 only, and nothing
+// in column 1). A row is never allowed to have MORE segments than the reference, since
+// there's no established column for the extra one to align to.
 function extendTableRun(lines: DocLine[], start: number): DocLine[] | null {
   const first = lines[start];
   if (first.segments.length < MIN_TABLE_COLUMNS) return null;
@@ -262,15 +289,35 @@ function extendTableRun(lines: DocLine[], start: number): DocLine[] | null {
 
   for (let i = start + 1; i < lines.length; i++) {
     const line = lines[i];
-    if (line.segments.length !== columnCount) break;
-    const aligned = line.segments.every(
-      (seg, idx) => Math.abs(seg.startX - columnStartXs[idx]) <= TABLE_X_TOLERANCE
+    if (line.segments.length === 0 || line.segments.length > columnCount) break;
+    const aligned = line.segments.every((seg) =>
+      columnStartXs.some((colX) => Math.abs(seg.startX - colX) <= TABLE_X_TOLERANCE)
     );
     if (!aligned) break;
     run.push(line);
   }
 
   return run.length >= MIN_TABLE_ROWS ? run : null;
+}
+
+// Places each of a row's segments into its matching reference column (nearest startX),
+// leaving "" for any reference column this row had no segment for — the counterpart to
+// extendTableRun's tolerance for rows with fewer-than-reference segments.
+function alignRowToColumns(segments: LineSegment[], columnStartXs: number[]): string[] {
+  const row = columnStartXs.map(() => "");
+  for (const seg of segments) {
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < columnStartXs.length; i++) {
+      const dist = Math.abs(seg.startX - columnStartXs[i]);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = i;
+      }
+    }
+    row[bestIdx] = seg.text;
+  }
+  return row;
 }
 
 type DocBlock = { kind: "table"; rows: string[][] } | { kind: "text"; lines: DocLine[] };
@@ -290,7 +337,11 @@ function segmentIntoBlocks(lines: DocLine[]): DocBlock[] {
     const tableRun = extendTableRun(lines, i);
     if (tableRun) {
       flushText(i);
-      blocks.push({ kind: "table", rows: tableRun.map((l) => l.segments.map((s) => s.text)) });
+      const columnStartXs = tableRun[0].segments.map((s) => s.startX);
+      blocks.push({
+        kind: "table",
+        rows: tableRun.map((l) => alignRowToColumns(l.segments, columnStartXs)),
+      });
       i += tableRun.length;
       textRunStart = i;
     } else {
@@ -378,14 +429,25 @@ function stripLeadingChars(runs: StyleRun[], count: number): StyleRun[] {
   return result;
 }
 
+// A "" cell only exists because alignRowToColumns found no segment for that column on
+// this row — i.e. a source cell that visually spans several rows (like a day name next to
+// several activities). The row that established the column (built by extendTableRun's
+// reference row) always has every column filled, so a column's first cell is always
+// non-blank — meaning marking every non-blank cell RESTART and every blank cell CONTINUE
+// is always well-formed, never a CONTINUE with no RESTART above it.
 function buildTable(rows: string[][]): Table {
+  const columnCount = rows.reduce((max, row) => Math.max(max, row.length), 0);
   return new Table({
     rows: rows.map(
       (row) =>
         new TableRow({
-          children: row.map(
-            (cellText) => new TableCell({ children: [new Paragraph(cellText)] })
-          ),
+          children: Array.from({ length: columnCount }, (_, colIndex) => {
+            const cellText = row[colIndex] ?? "";
+            return new TableCell({
+              verticalMerge: cellText ? VerticalMergeType.RESTART : VerticalMergeType.CONTINUE,
+              children: [new Paragraph(cellText)],
+            });
+          }),
         })
     ),
   });
@@ -528,6 +590,7 @@ export async function pdfToDocx(file: File): Promise<Blob> {
     totalChars += items.reduce((sum, it) => sum + it.str.trim().length, 0);
 
     const lines = groupIntoLines(items)
+      .filter((line) => !isOrphanOrdinalSuffixLine(line))
       .map(buildLine)
       .filter((l): l is DocLine => l !== null);
     pageLines.push(lines);

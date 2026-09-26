@@ -302,6 +302,15 @@ export const tools: ToolMeta[] = [
     icon: "clock",
   },
   {
+    slug: "qr-code-generator",
+    title: "QR Code Generator",
+    shortTitle: "QR Code Generator",
+    description:
+      "Free QR code generator online. Turn any URL or text into a downloadable QR code — PNG or SVG, custom colors and size, entirely in your browser.",
+    category: "utility",
+    icon: "qr-code",
+  },
+  {
     slug: "url-encoder-decoder",
     title: "URL Encoder / Decoder",
     shortTitle: "URL Encode/Decode",

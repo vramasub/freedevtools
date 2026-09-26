@@ -17,6 +17,7 @@ import {
   Palette,
   Clock,
   Link2,
+  QrCode,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,4 +40,5 @@ export const toolIcons: Record<string, LucideIcon> = {
   palette: Palette,
   clock: Clock,
   link: Link2,
+  "qr-code": QrCode,
 };

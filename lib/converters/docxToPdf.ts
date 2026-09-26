@@ -4,6 +4,7 @@ interface WordToken {
   text: string;
   bold: boolean;
   italic: boolean;
+  underline: boolean;
 }
 
 const MARGIN = 50;
@@ -20,18 +21,19 @@ const HEADING_SIZES: Record<string, number> = {
   H6: 12,
 };
 
-function tokenize(node: Node, bold = false, italic = false): WordToken[] {
+function tokenize(node: Node, bold = false, italic = false, underline = false): WordToken[] {
   const tokens: WordToken[] = [];
   node.childNodes.forEach((child) => {
     if (child.nodeType === Node.TEXT_NODE) {
       const words = (child.textContent ?? "").split(/\s+/).filter(Boolean);
-      for (const text of words) tokens.push({ text, bold, italic });
+      for (const text of words) tokens.push({ text, bold, italic, underline });
     } else if (child.nodeType === Node.ELEMENT_NODE) {
       const el = child as Element;
       const tag = el.tagName.toLowerCase();
       const nextBold = bold || tag === "strong" || tag === "b";
       const nextItalic = italic || tag === "em" || tag === "i";
-      tokens.push(...tokenize(el, nextBold, nextItalic));
+      const nextUnderline = underline || tag === "u";
+      tokens.push(...tokenize(el, nextBold, nextItalic, nextUnderline));
     }
   });
   return tokens;
@@ -109,6 +111,15 @@ class PdfLayout {
       const font = this.pickFont(token.bold, token.italic);
       const word = `${token.text} `;
       this.page.drawText(word, { x: cx, y, size, font });
+      if (token.underline) {
+        const wordWidth = font.widthOfTextAtSize(token.text, size);
+        const underlineY = y - size * 0.08;
+        this.page.drawLine({
+          start: { x: cx, y: underlineY },
+          end: { x: cx + wordWidth, y: underlineY },
+          thickness: Math.max(0.5, size * 0.05),
+        });
+      }
       cx += font.widthOfTextAtSize(word, size);
     }
   }
@@ -265,7 +276,13 @@ export async function docxToPdf(file: File): Promise<Uint8Array> {
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.convertToHtml(
       { arrayBuffer },
-      { convertImage: mammoth.images.dataUri }
+      {
+        convertImage: mammoth.images.dataUri,
+        // mammoth doesn't map underline to HTML by default (it's treated as a styling
+        // nuance rather than semantic structure) — without this, underlined text is
+        // silently indistinguishable from plain text in the converted HTML.
+        styleMap: ["u => u"],
+      }
     );
     html = result.value;
   } catch {

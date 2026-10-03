@@ -302,6 +302,15 @@ export const tools: ToolMeta[] = [
     icon: "clock",
   },
   {
+    slug: "time-zone-converter",
+    title: "Time Zone Converter & Meeting Planner",
+    shortTitle: "Time Zone Converter",
+    description:
+      "Free time zone converter and meeting planner. Drag a timeline to convert time between cities, see everyone's working hours at a glance — handles daylight saving automatically.",
+    category: "utility",
+    icon: "globe",
+  },
+  {
     slug: "qr-code-generator",
     title: "QR Code Generator",
     shortTitle: "QR Code Generator",

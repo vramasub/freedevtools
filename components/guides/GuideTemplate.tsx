@@ -5,7 +5,6 @@ import type { GuideMeta } from "@/lib/guides-registry";
 import { getToolBySlug } from "@/lib/tools-registry";
 import { buildArticleSchema } from "@/lib/seo";
 import AdSlot from "@/components/layout/AdSlot";
-import AdsterraNative from "@/components/layout/AdsterraNative";
 
 interface GuideTemplateProps {
   guide: GuideMeta;
@@ -69,7 +68,6 @@ export default function GuideTemplate({ guide, children }: GuideTemplateProps) {
         )}
 
         <AdSlot slotId="guide-page-bottom" className="mt-10" />
-        <AdsterraNative className="mt-10" />
       </div>
     </div>
   );

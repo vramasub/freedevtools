@@ -8,7 +8,7 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/privacy-policy",
 });
 
-const EFFECTIVE_DATE = "August 1, 2026";
+const EFFECTIVE_DATE = "November 23, 2026";
 
 const displayFont = { fontFamily: "var(--font-space-grotesk)" };
 const bodyFont = { fontFamily: "var(--font-ibm-plex-sans)" };
@@ -54,9 +54,9 @@ export default function PrivacyPolicyPage() {
             Like most websites, we use standard web hosting logs (such as IP address, browser
             type, and pages visited) for security and reliability purposes. We may also use
             privacy-respecting analytics to understand which tools are popular, and cookies set
-            by advertising partners such as Google to serve and measure ads. This data is
-            unrelated to, and never includes, the contents of any file you process using our
-            tools.
+            by advertising partners such as Adsterra and Google to serve and measure ads. This
+            data is unrelated to, and never includes, the contents of any file you process using
+            our tools.
           </p>
         </section>
 
@@ -65,10 +65,19 @@ export default function PrivacyPolicyPage() {
             Advertising
           </h2>
           <p className="mt-2">
-            This site is supported by advertising served through Google AdSense. Google and its
-            partners may use cookies and similar technologies to serve ads based on your prior
-            visits to this or other websites. You can learn more about how Google uses data and
-            manage your ad personalization settings at{" "}
+            This site is supported by advertising. Ads are currently served through Adsterra, and
+            may also be served through Google AdSense. These networks and their partners may use
+            cookies and similar technologies to serve and measure ads based on your prior visits
+            to this or other websites. You can learn more about how these partners use data at{" "}
+            <a
+              href="https://adsterra.com/cookies/"
+              className="font-medium text-[#4438CA] hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              adsterra.com/cookies
+            </a>{" "}
+            and{" "}
             <a
               href="https://policies.google.com/technologies/partner-sites"
               className="font-medium text-[#4438CA] hover:underline"
@@ -78,8 +87,8 @@ export default function PrivacyPolicyPage() {
               policies.google.com/technologies/partner-sites
             </a>
             . If you are located in the European Economic Area or the United Kingdom, you may be
-            shown a consent request managing how these technologies are used, in line with
-            Google&apos;s EU User Consent Policy.
+            shown a consent request managing how these technologies are used, in line with these
+            networks&apos; EU user consent requirements.
           </p>
         </section>
 

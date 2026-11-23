@@ -64,20 +64,6 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-        {/* Adsterra ad scripts. data-cfasync="false" stops Cloudflare Rocket Loader
-            from deferring/rewriting them. */}
-        <Script
-          id="adsterra-abscloud"
-          src="https://abscloud.org/1/ee3cc377c637f81ab2b7f07e15484c55"
-          data-cfasync="false"
-          strategy="afterInteractive"
-        />
-        <Script
-          id="adsterra-bauval"
-          src="https://bauval.org/14/a741410d67482a2d4c097e48f659b7c0"
-          data-cfasync="false"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );

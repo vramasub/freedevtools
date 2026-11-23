@@ -5,6 +5,7 @@ import { categoryTheme } from "@/lib/theme";
 import { toolIcons } from "@/lib/tool-icons";
 import { buildOrganizationSchema } from "@/lib/seo";
 import AdSlot from "@/components/layout/AdSlot";
+import AdsterraNative from "@/components/layout/AdsterraNative";
 import HeroDemo from "@/components/home/HeroDemo";
 
 const categories = categoryOrder;
@@ -87,6 +88,7 @@ export default function Home() {
         })}
 
         <AdSlot slotId="homepage-bottom" className="mt-4" />
+        <AdsterraNative className="mt-4" />
       </div>
     </div>
   );
